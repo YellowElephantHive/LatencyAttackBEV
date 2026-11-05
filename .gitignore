@@ -105,7 +105,8 @@ venv.bak/
 .mypy_cache/
 
 # cython generated cpp
-data
+data/*
+!data/.gitkeep
 .vscode
 .idea
 
@@ -113,9 +114,20 @@ data
 *.pkl
 *.pkl.json
 *.log.json
-work_dirs/
+checkpoint/*
+!checkpoint/.gitkeep
+work_dirs/*
+!work_dirs/.gitkeep
+logs/*
+!logs/.gitkeep
+results/
 exps/
 *~
+._*
+.DS_Store
+*.swp
+*.swo
+*.sif
 mmdet3d/.mim
 
 # Pytorch

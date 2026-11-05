@@ -1,0 +1,23 @@
+#!/bin/bash
+
+#SBATCH --job-name=bevdet_gate
+#SBATCH --output=logs/gate_%j.out
+#SBATCH --error=logs/gate_%j.err
+#SBATCH --time=02:00:00
+#SBATCH --nodes=1
+#SBATCH --cpus-per-task=4
+#SBATCH --mem=16G
+#SBATCH --gpus-per-node=gtx_1080:1
+
+# Refactor smoke test only (2026-11-05; not a thesis result):
+# sbatch --gpus-per-node=p100:1 <this-file>
+
+set -euo pipefail
+
+export BEVDET_ENTRYPOINT=tools/run_bevdet_experiment.py
+cd "${BEVDET_HOST_ROOT:-/project/xiaoyon/trustai/lai/BEVDet}"
+# shellcheck source=experiments/bevdet_attack/lib.sh
+source experiments/bevdet_attack/lib.sh
+
+bevdet_prepare_job
+bevdet_run all "work_dirs/cnt_gate_${SLURM_JOB_ID}.csv" attack

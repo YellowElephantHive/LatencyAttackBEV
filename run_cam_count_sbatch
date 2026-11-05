@@ -1,0 +1,58 @@
+#!/bin/bash
+
+#SBATCH --job-name=bevdet_cam_count
+#SBATCH --output=logs/cam_count_master_%j.out
+#SBATCH --error=logs/cam_count_master_%j.err
+#SBATCH --time=12:00:00
+#SBATCH --nodes=1
+#SBATCH --cpus-per-task=4
+#SBATCH --mem=16G
+#SBATCH --gpus-per-node=gtx_1080:1
+
+# Refactor smoke test only (2026-11-05; not a thesis result):
+# sbatch --gpus-per-node=p100:1 <this-file>
+
+set -euo pipefail
+
+export BEVDET_ENTRYPOINT=tools/run_bevdet_experiment.py
+cd "${BEVDET_HOST_ROOT:-/project/xiaoyon/trustai/lai/BEVDet}"
+# shellcheck source=experiments/bevdet_attack/lib.sh
+source experiments/bevdet_attack/lib.sh
+
+bevdet_prepare_job
+
+while IFS=$'\t' read -r NUM_ATTACKED_CAMS ATTACK_CAMS; do
+  [[ -z "${NUM_ATTACKED_CAMS}" || "${NUM_ATTACKED_CAMS}" == \#* ]] && continue
+  EXP_NAME="attack_${NUM_ATTACKED_CAMS}cams"
+
+  EXP_STDOUT="logs/${EXP_NAME}_${SLURM_JOB_ID}.out"
+  EXP_STDERR="logs/${EXP_NAME}_${SLURM_JOB_ID}.err"
+  CNT_CSV="work_dirs/cnt_${EXP_NAME}_${SLURM_JOB_ID}.csv"
+
+  echo "============================================================"
+  echo "Starting: ${EXP_NAME}"
+  echo "Number of attacked cameras: ${NUM_ATTACKED_CAMS}"
+  echo "Camera indices: [${ATTACK_CAMS}]"
+  echo "Output log: ${EXP_STDOUT}"
+  echo "Error log: ${EXP_STDERR}"
+  echo "Count CSV: ${CNT_CSV}"
+  echo "Start time: $(date)"
+  echo "============================================================"
+
+  if [[ "${BEVDET_DRY_RUN:-0}" == 1 ]]; then
+    bevdet_run "${ATTACK_CAMS}" "${CNT_CSV}" attack
+  else
+    bevdet_run "${ATTACK_CAMS}" "${CNT_CSV}" attack \
+      > "${EXP_STDOUT}" 2> "${EXP_STDERR}"
+  fi
+
+  echo "Completed: ${EXP_NAME}"
+  echo "End time: $(date)"
+  echo
+done < experiments/bevdet_attack/camera_count.tsv
+
+echo "============================================================"
+echo "All six experiments completed."
+echo "Job ID: ${SLURM_JOB_ID}"
+echo "Finish time: $(date)"
+echo "============================================================"

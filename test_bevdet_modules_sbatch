@@ -1,0 +1,28 @@
+#!/bin/bash
+
+#SBATCH --job-name=bevdet_unit_tests
+#SBATCH --output=logs/test_modules_%j.out
+#SBATCH --error=logs/test_modules_%j.err
+#SBATCH --time=00:15:00
+#SBATCH --nodes=1
+#SBATCH --cpus-per-task=2
+#SBATCH --mem=8G
+
+set -euo pipefail
+
+BEVDET_HOST_ROOT="${BEVDET_HOST_ROOT:-/project/xiaoyon/trustai/lai/BEVDet}"
+BEVDET_CONTAINER="${BEVDET_CONTAINER:-/project/xiaoyon/trustai/lai/bevdet_apptainer.sif}"
+
+cd "${BEVDET_HOST_ROOT}"
+mkdir -p logs
+
+apptainer exec \
+  --bind "${BEVDET_HOST_ROOT}:/mmdetection3d" \
+  "${BEVDET_CONTAINER}" \
+  /bin/bash -lc '
+    cd /mmdetection3d
+    PYTHONPATH=tools python -m unittest discover \
+      --start-directory tools/bevdet_experiment/tests \
+      --pattern "test_*.py" \
+      --verbose
+  '
