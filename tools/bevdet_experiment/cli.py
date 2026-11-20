@@ -6,7 +6,7 @@ import warnings
 
 from mmcv import DictAction
 
-def parse_args():
+def build_parser():
     parser = argparse.ArgumentParser(
         description='MMDet test (and eval) a model')
     parser.add_argument('--config', help='test config file path')
@@ -211,7 +211,19 @@ def parse_args():
         default='none',
         help='job launcher')
     parser.add_argument('--local_rank', type=int, default=0)
-    args = parser.parse_args()
+    return parser
+
+
+def parse_args(argv=None, configure_parser=None):
+    """Parse the shared experiment CLI.
+
+    ``configure_parser`` lets independent tools add arguments while keeping
+    every attack default identical to the canonical experiment entrypoint.
+    """
+    parser = build_parser()
+    if configure_parser is not None:
+        configure_parser(parser)
+    args = parser.parse_args(argv)
     if 'LOCAL_RANK' not in os.environ:
         os.environ['LOCAL_RANK'] = str(args.local_rank)
 

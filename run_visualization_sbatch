@@ -1,0 +1,58 @@
+#!/bin/bash
+
+#SBATCH --job-name=bevdet_vis
+#SBATCH --output=logs/visualization_%j.out
+#SBATCH --error=logs/visualization_%j.err
+#SBATCH --time=04:00:00
+#SBATCH --nodes=1
+#SBATCH --cpus-per-task=4
+#SBATCH --mem=24G
+#SBATCH --gpus-per-node=p100:1
+
+set -euo pipefail
+
+BEVDET_HOST_ROOT="${BEVDET_HOST_ROOT:-/project/xiaoyon/trustai/lai/LatencyAttackBEV-visualization}"
+BEVDET_CONTAINER="${BEVDET_CONTAINER:-/project/xiaoyon/trustai/lai/bevdet_apptainer.sif}"
+BEVDET_CONTAINER_ROOT="${BEVDET_CONTAINER_ROOT:-/mmdetection3d}"
+BEVDET_VIS_SCENE="${BEVDET_VIS_SCENE:-scene-0103}"
+BEVDET_VIS_START_FRAME="${BEVDET_VIS_START_FRAME:-0}"
+BEVDET_VIS_MAX_FRAMES="${BEVDET_VIS_MAX_FRAMES:-40}"
+BEVDET_VIS_DRAW_LIMIT="${BEVDET_VIS_DRAW_LIMIT:-500}"
+
+cd "${BEVDET_HOST_ROOT}"
+mkdir -p logs work_dirs
+
+# shellcheck source=experiments/bevdet_attack/common.sh
+source experiments/bevdet_attack/common.sh
+
+out_dir="work_dirs/visualization_${SLURM_JOB_ID}"
+command=(
+  python tools/run_bevdet_visualization.py
+  --config "${BEVDET_CONFIG}"
+  --checkpoint "${BEVDET_CHECKPOINT}"
+  --attack
+  --eps "${BEVDET_EPS}"
+  --alpha "${BEVDET_ALPHA}"
+  --steps "${BEVDET_STEPS}"
+  --w_hm "${BEVDET_W_HM}"
+  --hm-loss-mode "${BEVDET_HM_LOSS_MODE}"
+  --hm-tau "${BEVDET_HM_TAU}"
+  --hm-steep "${BEVDET_HM_STEEP}"
+  --attack-cams all
+  --scene-name "${BEVDET_VIS_SCENE}"
+  --start-frame "${BEVDET_VIS_START_FRAME}"
+  --max-frames "${BEVDET_VIS_MAX_FRAMES}"
+  --draw-limit "${BEVDET_VIS_DRAW_LIMIT}"
+  --visualization-out "${out_dir}"
+  --cfg-options
+  "data.test.data_root=${BEVDET_DATA_ROOT}"
+  "data.test.ann_file=${BEVDET_ANN_FILE}"
+)
+
+printf -v inner_command '%q ' "${command[@]}"
+apptainer exec --nv \
+  --bind "${BEVDET_HOST_ROOT}:${BEVDET_CONTAINER_ROOT}" \
+  "${BEVDET_CONTAINER}" \
+  /bin/bash -lc "cd ${BEVDET_CONTAINER_ROOT} && ${inner_command}"
+
+echo "Visualization frames: ${BEVDET_HOST_ROOT}/${out_dir}/frames"

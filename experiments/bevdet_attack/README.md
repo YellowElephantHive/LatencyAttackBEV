@@ -13,6 +13,27 @@ sbatch run_cam_count_sbatch
 sbatch run_single_cam_position_sbatch
 ```
 
+## Visualization-only P100 job
+
+`run_visualization_sbatch` uses the same modular attack implementation and
+parameters, but runs clean and attacked inference separately to capture
+pre-NMS box geometry. It renders PNG frames for a portfolio video and never
+contributes timing values to the GTX 1080 Ti thesis results.
+
+```bash
+BEVDET_VIS_MAX_FRAMES=2 sbatch run_visualization_sbatch  # smoke test
+sbatch run_visualization_sbatch                          # scene-0103 clip
+```
+
+The default output is
+`work_dirs/visualization_${SLURM_JOB_ID}/frames/frame_%06d.png`. Encode it on
+a workstation with FFmpeg after downloading the directory:
+
+```bash
+ffmpeg -framerate 6 -i frame_%06d.png -c:v libx264 -pix_fmt yuv420p \
+  bevdet_candidate_flood.mp4
+```
+
 The four official jobs use the independent modular entrypoint
 `tools/run_bevdet_experiment.py`. They retain the thesis GTX 1080 request for
 reproducibility. Palmetto2 no longer advertises GTX 1080 nodes. A P100

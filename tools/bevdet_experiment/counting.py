@@ -18,7 +18,16 @@ def find_center_head(model):
             return m
     raise RuntimeError("CenterHead not found")
 
-def install_counter(center_head, out_csv):
+def install_counter(center_head, out_csv, candidate_sink=None):
+    """Instrument CenterHead post-processing.
+
+    Args:
+        center_head: CenterPoint detection head.
+        out_csv: Destination for the existing count/timing log.
+        candidate_sink: Optional callable invoked with CPU tensors for each
+            task immediately after NMS. This is disabled by default so the
+            thesis experiment path retains its existing behavior and cost.
+    """
     os.makedirs(os.path.dirname(out_csv) or ".", exist_ok=True)
     f = open(out_csv, "w", newline="")
     writer = csv.writer(f)
@@ -128,6 +137,20 @@ def install_counter(center_head, out_csv):
                     box_preds[cls_labels == cid, 3:6] = box_preds[cls_labels == cid, 3:6] / nms_rescale_factor[cid]
             else:
                 box_preds[:, 3:6] = box_preds[:, 3:6] / nms_rescale_factor
+
+            if candidate_sink is not None:
+                selected_cpu = selected.detach().cpu().clone() \
+                    if isinstance(selected, torch.Tensor) \
+                    else torch.as_tensor(selected, dtype=torch.long)
+                candidate_sink({
+                    "sample_idx": sid,
+                    "task_id": int(task_id),
+                    "boxes": box_preds.detach().cpu().clone(),
+                    "scores": top_scores.detach().cpu().clone(),
+                    "labels": top_labels.detach().cpu().clone(),
+                    "selected": selected_cpu,
+                    "ms_nms": float(d["ms_nms"]),
+                })
 
             selected_boxes = box_preds[selected]
             selected_labels = top_labels[selected]
