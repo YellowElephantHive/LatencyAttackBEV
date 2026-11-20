@@ -13,6 +13,66 @@ responses, which can cause more decoded candidates to pass filtering and enter
 non-maximum suppression (NMS). The main measurement is synchronized task-wise
 `nms_gpu()` execution time, not end-to-end inference latency.
 
+## Visualization demo
+
+[![Watch the BEVDet latency-attack visualization](https://img.youtube.com/vi/epcP8dvvDb8/maxresdefault.jpg)](https://youtu.be/epcP8dvvDb8)
+
+The video compares clean and attacked multi-camera inputs, an amplified view
+of the image perturbation, and clean versus attacked pre-NMS candidates in
+bird's-eye view. The visualization code is intentionally kept separate from
+the thesis experiment pipeline on the
+[`codex/attack-video-visualization`](https://github.com/YellowElephantHive/LatencyAttackBEV/tree/codex/attack-video-visualization)
+branch.
+
+### Run the visualization on Palmetto2
+
+Clone the repository and switch to the visualization branch:
+
+```bash
+git clone https://github.com/YellowElephantHive/LatencyAttackBEV.git
+cd LatencyAttackBEV
+git switch codex/attack-video-visualization
+```
+
+The visualization job expects an Apptainer image plus an asset directory that
+contains the separately distributed `data/` and `checkpoint/` directories.
+Set their locations before submitting the job:
+
+```bash
+export BEVDET_HOST_ROOT="$PWD"
+export BEVDET_ASSET_ROOT=/path/to/bevdet-assets
+export BEVDET_CONTAINER=/path/to/bevdet_apptainer.sif
+```
+
+Run a two-frame smoke test first:
+
+```bash
+BEVDET_VIS_MAX_FRAMES=2 sbatch --export=ALL run_visualization_sbatch
+```
+
+After the smoke test succeeds, generate the default 40-frame clip:
+
+```bash
+sbatch --export=ALL run_visualization_sbatch
+```
+
+PNG frames, candidate-count CSV files, and a manifest are written under
+`work_dirs/visualization_<JOB_ID>/`. To encode the frames on a machine with
+FFmpeg installed:
+
+```bash
+JOB_ID=12345678  # replace with the completed Slurm job ID
+ffmpeg -framerate 6 \
+  -i "work_dirs/visualization_${JOB_ID}/frames/frame_%06d.png" \
+  -c:v libx264 -pix_fmt yuv420p \
+  bevdet_candidate_flood.mp4
+```
+
+The supplied Slurm job requests one P100 GPU using Palmetto2's resource syntax.
+Users of another cluster must adapt the Slurm resource request and filesystem
+paths to their environment. P100 execution is for visualization only; its
+runtime is not part of the original GTX 1080 Ti thesis results.
+
 ## Thesis results
 
 All reported thesis results were measured on **one NVIDIA GeForce GTX 1080 Ti**
