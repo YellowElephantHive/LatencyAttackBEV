@@ -12,6 +12,7 @@
 set -euo pipefail
 
 BEVDET_HOST_ROOT="${BEVDET_HOST_ROOT:-/project/xiaoyon/trustai/lai/LatencyAttackBEV-visualization}"
+BEVDET_ASSET_ROOT="${BEVDET_ASSET_ROOT:-/project/xiaoyon/trustai/lai/BEVDet}"
 BEVDET_CONTAINER="${BEVDET_CONTAINER:-/project/xiaoyon/trustai/lai/bevdet_apptainer.sif}"
 BEVDET_CONTAINER_ROOT="${BEVDET_CONTAINER_ROOT:-/mmdetection3d}"
 BEVDET_VIS_SCENE="${BEVDET_VIS_SCENE:-scene-0103}"
@@ -52,6 +53,8 @@ command=(
 printf -v inner_command '%q ' "${command[@]}"
 apptainer exec --nv \
   --bind "${BEVDET_HOST_ROOT}:${BEVDET_CONTAINER_ROOT}" \
+  --bind "${BEVDET_ASSET_ROOT}/data:${BEVDET_CONTAINER_ROOT}/data" \
+  --bind "${BEVDET_ASSET_ROOT}/checkpoint:${BEVDET_CONTAINER_ROOT}/checkpoint" \
   "${BEVDET_CONTAINER}" \
   /bin/bash -lc "cd ${BEVDET_CONTAINER_ROOT} && ${inner_command}"
 

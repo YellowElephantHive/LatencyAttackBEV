@@ -322,4 +322,3 @@ def main(argv=None):
     with (out_dir / 'manifest.json').open('w') as handle:
         json.dump(metadata, handle, indent=2)
     print('Saved {} frames to {}'.format(len(manifest), frame_dir))
-

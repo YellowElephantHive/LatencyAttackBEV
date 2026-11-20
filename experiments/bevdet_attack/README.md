@@ -19,6 +19,8 @@ sbatch run_single_cam_position_sbatch
 parameters, but runs clean and attacked inference separately to capture
 pre-NMS box geometry. It renders PNG frames for a portfolio video and never
 contributes timing values to the GTX 1080 Ti thesis results.
+The clean checkout reuses the existing Palmetto dataset and checkpoints via
+`BEVDET_ASSET_ROOT` rather than copying those large assets.
 
 ```bash
 BEVDET_VIS_MAX_FRAMES=2 sbatch run_visualization_sbatch  # smoke test
