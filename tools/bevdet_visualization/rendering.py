@@ -47,8 +47,17 @@ def _label_image(image, label):
     return result
 
 
+def _make_six_camera_grid(rendered):
+    """Arrange six wide camera images as two columns by three rows."""
+    return np.concatenate([
+        np.concatenate(rendered[0:2], axis=1),
+        np.concatenate(rendered[2:4], axis=1),
+        np.concatenate(rendered[4:6], axis=1),
+    ], axis=0)
+
+
 def make_camera_grid(images, labels=CAM_ORDER):
-    """Return a 3x2 camera mosaic from NCHW or CHW image tensors."""
+    """Return a 2x3 camera mosaic from NCHW or CHW image tensors."""
     array = images
     if hasattr(array, 'dim') and array.dim() == 5:
         array = array[0]
@@ -62,10 +71,7 @@ def make_camera_grid(images, labels=CAM_ORDER):
         _label_image(tensor_norm_to_bgr_uint8(array[i]), labels[i])
         for i in range(6)
     ]
-    return np.concatenate([
-        np.concatenate(rendered[:3], axis=1),
-        np.concatenate(rendered[3:6], axis=1),
-    ], axis=0)
+    return _make_six_camera_grid(rendered)
 
 
 def make_difference_grid(clean_images, attack_images, amplification=8.0):
@@ -86,10 +92,7 @@ def make_difference_grid(clean_images, attack_images, amplification=8.0):
         attack_bgr = tensor_norm_to_bgr_uint8(attack[index]).astype(np.float32)
         diff = np.clip(np.abs(attack_bgr - clean_bgr) * amplification, 0, 255).astype(np.uint8)
         rendered.append(_label_image(diff, CAM_ORDER[index]))
-    return np.concatenate([
-        np.concatenate(rendered[:3], axis=1),
-        np.concatenate(rendered[3:6], axis=1),
-    ], axis=0)
+    return _make_six_camera_grid(rendered)
 
 
 def box_corners_bev(box):

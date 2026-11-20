@@ -16,10 +16,10 @@ class VisualizationTests(unittest.TestCase):
         images = np.zeros((1, 6, 3, 32, 64), dtype=np.float32)
         attacked = images.copy()
         attacked[:, 1] += 0.01
-        self.assertEqual(make_camera_grid(images).shape, (64, 192, 3))
+        self.assertEqual(make_camera_grid(images).shape, (96, 128, 3))
         self.assertEqual(
             make_difference_grid(images, attacked).shape,
-            (64, 192, 3),
+            (96, 128, 3),
         )
 
     def test_box_corners_and_bev_render(self):
