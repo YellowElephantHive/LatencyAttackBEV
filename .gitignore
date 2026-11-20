@@ -136,6 +136,9 @@ mmdet3d/.mim
 # demo
 *.jpg
 *.png
+!docs/results/
+!docs/results/README.md
+!docs/results/*.png
 data/s3dis/Stanford3dDataset_v1.2_Aligned_Version/
 data/scannet/scans/
 data/sunrgbd/OFFICIAL_SUNRGBD/

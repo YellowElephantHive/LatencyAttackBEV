@@ -24,6 +24,27 @@ the thesis experiment pipeline on the
 [`codex/attack-video-visualization`](https://github.com/YellowElephantHive/LatencyAttackBEV/tree/codex/attack-video-visualization)
 branch.
 
+<details>
+<summary>Qualitative input comparison</summary>
+
+#### Clean six-camera input
+
+![Clean input across six synchronized cameras](docs/results/clean-six-camera-input.png)
+
+#### Adversarial six-camera input
+
+![Adversarial input at the same display scale](docs/results/adversarial-six-camera-input.png)
+
+#### Amplified perturbation
+
+![Amplified difference revealing the perturbation pattern](docs/results/amplified-perturbation.png)
+
+The camera imagery comes from the nuScenes dataset and is shown for
+non-commercial research communication. See the
+[result figure notice](docs/results/README.md) for provenance and reuse terms.
+
+</details>
+
 ### Run the visualization on Palmetto2
 
 Clone the repository and switch to the visualization branch:
@@ -95,6 +116,8 @@ primary attack modified all six camera views using `eps=0.03137` (approximately
 | mAP | 0.2852 | 0.0773 | -0.2079 |
 | NDS | 0.3309 | 0.1590 | -0.1719 |
 
+![Primary workload and NMS timing result](docs/results/primary-workload-result.png)
+
 ### Camera-count ablation
 
 Each column uses one predefined camera subset. The experiment does not average
@@ -116,6 +139,23 @@ pre-NMS boxes and 4.70 ms per frame.
 
 Detection degradation is a secondary observation. Gate-Sum does not optimize
 an accuracy loss directly.
+
+<details>
+<summary>Viewpoint, camera-count, and accuracy charts</summary>
+
+#### Single-camera viewpoint analysis
+
+![Single-camera NMS timing by viewpoint](docs/results/single-camera-nms-time.png)
+
+#### Camera-count ablation
+
+![NMS timing and detection accuracy by perturbed camera count](docs/results/camera-count-ablation.png)
+
+#### Detection accuracy side effect
+
+![Detection accuracy under the six-camera attack](docs/results/detection-accuracy-effect.png)
+
+</details>
 
 ## Repository layout
 
